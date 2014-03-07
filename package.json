@@ -1,0 +1,9 @@
+{
+  "name": "btc-e-trader",
+  "description": "btc-e-trader",
+  "author": "Sergey Kuvakin",
+  "dependencies": {},
+  "engines": {
+    "node": ">=0.10"
+  }
+}
