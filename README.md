@@ -1,9 +1,8 @@
 Trading bot BTC-E
 ===================
-
 in developing...
 
-Run
+###Run
 ```bash
 node app.js
 ```
