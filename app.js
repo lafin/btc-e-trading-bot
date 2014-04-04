@@ -1,3 +1,5 @@
+'use strict';
+
 var BTCE = require('./btce'),
   config = require('./private'),
   btce = new BTCE(config.key, config.secret);
@@ -13,7 +15,7 @@ function roundMod(value, precision) {
 function cancelOrder(order_id) {
   btce.cancelOrder({
     order_id: order_id
-  }, function(err) {
+  }, function (err) {
     if (err) {
       throw err;
     }
@@ -26,7 +28,7 @@ function addOrder(type) {
   var rate, amount;
   btce.ticker({
     pair: pair
-  }, function(err, data) {
+  }, function (err, data) {
     if (err) {
       throw err;
     }
@@ -35,7 +37,7 @@ function addOrder(type) {
       diff = (top - bottom) * 0.25;
     top = top - diff; // -25%
     bottom = bottom + diff; // +25%
-    btce.getInfo(function(err, data) {
+    btce.getInfo(function (err, data) {
       if (err) {
         throw err;
       }
@@ -54,7 +56,7 @@ function addOrder(type) {
         type: type,
         rate: rate,
         amount: amount
-      }, function(err, data) {
+      }, function (err, data) {
         if (err) {
           throw err;
         }
@@ -68,7 +70,7 @@ function addOrder(type) {
 function checkOrders() {
   btce.activeOrders({
     pair: pair
-  }, function(err, orders) {
+  }, function (err, orders) {
     if (err) {
       throw err;
     }
@@ -88,12 +90,12 @@ function checkOrders() {
 
 btce.fee({
   pair: pair
-}, function(err, data) {
+}, function (err, data) {
   if (err) {
     throw err;
   }
   fee = data.trade;
-  setInterval(function() {
+  setInterval(function () {
     checkOrders();
   }, 5000);
 });

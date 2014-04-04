@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Node.js BTC-E Trading API
  * https://btc-e.com/api/documentation
@@ -13,21 +15,30 @@
  * Want new features?, just ask me!
  */
 
+/**
+ * Added public api version 3 (lafin <kuvakin@gmail.com>)
+ */
+
 var https = require('https');
 var url = require('url');
 var crypto = require('crypto');
 var querystring = require('querystring');
 var util = require('util');
 
-module.exports = BTCE;
-
 function BTCE(key, secret) {
   this.key = key;
   this.secret = secret;
-  this.urlPost = 'https://btc-e.com:443/tapi';
-  this.urlGet = 'https://btc-e.com:443/api/2/';
+  this.urlPost = function () {
+    return 'https://btc-e.com:443/tapi';
+  };
+  this.urlGet = function (ver) {
+    ver = ver || 2;
+    return 'https://btc-e.com:443/api/' + ver + '/';
+  };
   this.nonce = BTCE.getTimestamp(Date.now());
 }
+
+module.exports = BTCE;
 
 /**
  * getInfo: returns the information about the user's current balance, API key privileges,
@@ -35,7 +46,7 @@ function BTCE(key, secret) {
  *
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.getInfo = function(callback) {
+BTCE.prototype.getInfo = function (callback) {
   this.query('getInfo', null, callback);
 };
 
@@ -58,7 +69,7 @@ BTCE.prototype.getInfo = function(callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.transHistory = function(params, callback) {
+BTCE.prototype.transHistory = function (params, callback) {
   this.query('TransHistory', params, callback);
 };
 
@@ -82,7 +93,7 @@ BTCE.prototype.transHistory = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.tradeHistory = function(params, callback) {
+BTCE.prototype.tradeHistory = function (params, callback) {
   this.query('TradeHistory', params, callback);
 };
 
@@ -108,7 +119,7 @@ BTCE.prototype.tradeHistory = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.orderList = function(params, callback) {
+BTCE.prototype.orderList = function (params, callback) {
   this.query('OrderList', params, callback);
 };
 
@@ -134,7 +145,7 @@ BTCE.prototype.orderList = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.activeOrders = function(params, callback) {
+BTCE.prototype.activeOrders = function (params, callback) {
   this.query('ActiveOrders', params, callback);
 };
 
@@ -154,7 +165,7 @@ BTCE.prototype.activeOrders = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.trade = function(params, callback) {
+BTCE.prototype.trade = function (params, callback) {
   this.query('Trade', params, callback);
 };
 
@@ -169,7 +180,7 @@ BTCE.prototype.trade = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.cancelOrder = function(params, callback) {
+BTCE.prototype.cancelOrder = function (params, callback) {
   this.query('CancelOrder', params, callback);
 };
 
@@ -180,14 +191,14 @@ BTCE.prototype.cancelOrder = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.query = function(method, params, callback) {
+BTCE.prototype.query = function (method, params, callback) {
   var content = {
     'method': method,
     'nonce': ++this.nonce
   };
 
-  if ( !! params && typeof(params) === 'object') {
-    Object.keys(params).forEach(function(key) {
+  if ( !! params && typeof (params) === 'object') {
+    Object.keys(params).forEach(function (key) {
       var value;
       if (key === 'since' || key === 'end') {
         value = BTCE.getTimestamp(params[key]);
@@ -205,7 +216,7 @@ BTCE.prototype.query = function(method, params, callback) {
     .update(new Buffer(content, 'utf8'))
     .digest('hex');
 
-  var options = url.parse(this.urlPost);
+  var options = url.parse(this.urlPost());
   options.method = 'POST';
   options.headers = {
     'Key': this.key,
@@ -214,18 +225,18 @@ BTCE.prototype.query = function(method, params, callback) {
     'content-length': content.length
   };
 
-  var req = https.request(options, function(res) {
+  var req = https.request(options, function (res) {
     var data = '';
     res.setEncoding('utf8');
-    res.on('data', function(chunk) {
+    res.on('data', function (chunk) {
       data += chunk;
     });
-    res.on('end', function() {
+    res.on('end', function () {
       BTCE.responseHandler(null, data, callback);
     });
   });
 
-  req.on('error', function(err) {
+  req.on('error', function (err) {
     BTCE.responseHandler(err, null, callback);
   });
 
@@ -239,24 +250,24 @@ BTCE.prototype.query = function(method, params, callback) {
  * @param {String} getUrl
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.getHTTPS = function(getUrl, callback) {
+BTCE.prototype.getHTTPS = function (getUrl, callback) {
 
   var options = url.parse(getUrl);
   options.method = 'GET';
-  var req = https.request(options, function(res) {
+  var req = https.request(options, function (res) {
     var data = '';
     res.setEncoding('utf8');
 
-    res.on('data', function(chunk) {
+    res.on('data', function (chunk) {
       data += chunk;
     });
 
-    res.on('end', function() {
+    res.on('end', function () {
       BTCE.responseHandler(null, data, callback);
     });
   });
 
-  req.on('error', function(err) {
+  req.on('error', function (err) {
     BTCE.responseHandler(err, null, callback);
   });
 
@@ -271,13 +282,14 @@ BTCE.prototype.getHTTPS = function(getUrl, callback) {
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * count     | No    | The number of orders for displaying              | numerical | 100
  * pair      | No    | the pair to display                              | pair[1]   | btc_usd
+ * ver       | No    | Version api                                      | numerical | 2
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * [1] Example: btc_usd
  *
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.trades = function(params, callback) {
+BTCE.prototype.trades = function (params, callback) {
   if (!params) {
     params = {};
   }
@@ -287,8 +299,16 @@ BTCE.prototype.trades = function(params, callback) {
   if (!params.pair) {
     params.pair = 'btc_usd';
   }
+  if (!params.ver) {
+    params.ver = 2;
+  }
 
-  var url = this.urlGet + params.pair + '/trades/' + params.count;
+  var url = this.urlGet(params.ver);
+  if (params.ver === 3) {
+    url += 'trades/' + params.pair + '?limit=' + params.count;
+  } else {
+    url += params.pair + '/trades/' + params.count;
+  }
 
   this.getHTTPS(url, callback);
 };
@@ -301,13 +321,14 @@ BTCE.prototype.trades = function(params, callback) {
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * count     | No    | The number of items for displaying               | numerical | 100
  * pair      | No    | the pair to display                              | pair[1]   | btc_usd
+ * ver       | No    | Version api                                      | numerical | 2
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * [1] Example: btc_usd
  *
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.depth = function(params, callback) {
+BTCE.prototype.depth = function (params, callback) {
   if (!params) {
     params = {};
   }
@@ -317,8 +338,16 @@ BTCE.prototype.depth = function(params, callback) {
   if (!params.pair) {
     params.pair = 'btc_usd';
   }
+  if (!params.ver) {
+    params.ver = 2;
+  }
 
-  var url = this.urlGet + params.pair + '/depth/' + params.count;
+  var url = this.urlGet(params.ver);
+  if (params.ver === 3) {
+    url += 'depth/' + params.pair + '?limit=' + params.count;
+  } else {
+    url += params.pair + '/depth/' + params.count;
+  }
 
   this.getHTTPS(url, callback);
 };
@@ -330,27 +359,36 @@ BTCE.prototype.depth = function(params, callback) {
  * parameter | oblig | description                                      | type      | default
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * pair      | No    | the pair to display                              | pair[1]   | btc_usd
+ * ver       | No    | Version api                                      | numerical | 2
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * [1] Example: btc_usd
  *
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.ticker = function(params, callback) {
+BTCE.prototype.ticker = function (params, callback) {
   if (!params) {
     params = {};
   }
   if (!params.pair) {
     params.pair = 'btc_usd';
   }
+  if (!params.ver) {
+    params.ver = 2;
+  }
 
-  var url = this.urlGet + params.pair + '/ticker';
+  var url = this.urlGet(params.ver);
+  if (params.ver === 3) {
+    url += 'ticker/' + params.pair;
+  } else {
+    url += params.pair + '/ticker';
+  }
 
   this.getHTTPS(url, callback);
 };
 
 /**
- * fee: Get the fee for transactions
+ * fee: Get the fee for transactions, only api version 2
  *
  * ----------+-------+--------------------------------------------------+-----------+-----------
  * parameter | oblig | description                                      | type      | default
@@ -362,7 +400,7 @@ BTCE.prototype.ticker = function(params, callback) {
  * @param {Object} params
  * @param {Function} callback(err, data)
  */
-BTCE.prototype.fee = function(params, callback) {
+BTCE.prototype.fee = function (params, callback) {
   if (!params) {
     params = {};
   }
@@ -370,7 +408,18 @@ BTCE.prototype.fee = function(params, callback) {
     params.pair = 'btc_usd';
   }
 
-  var url = this.urlGet + params.pair + '/fee';
+  var url = this.urlGet() + params.pair + '/fee';
+
+  this.getHTTPS(url, callback);
+};
+
+/**
+ * info: Get the info for transactions, only api version 3
+ *
+ * @param {Function} callback(err, data)
+ */
+BTCE.prototype.info = function (callback) {
+  var url = this.urlGet(3) + 'info';
 
   this.getHTTPS(url, callback);
 };
@@ -378,7 +427,7 @@ BTCE.prototype.fee = function(params, callback) {
 /**
  * Helper function to handle BTCE HTTP responses and errors
  */
-BTCE.responseHandler = function(err, data, callback) {
+BTCE.responseHandler = function (err, data, callback) {
   if (err) {
     callback(err, null);
   } else {
@@ -405,7 +454,7 @@ BTCE.responseHandler = function(err, data, callback) {
  *
  * @param {Mixed} time
  */
-BTCE.getTimestamp = function(time) {
+BTCE.getTimestamp = function (time) {
   if (util.isDate(time)) {
     return Math.round(time.getTime() / 1000);
   }
