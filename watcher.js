@@ -7,7 +7,7 @@ var BTCE = require('./btce'),
   Record = null;
 
 function init(callback) {
-  mongoose.connect('mongodb://localhost/watcher');
+  mongoose.connect('mongodb://localhost:27017/watcher');
   Record = mongoose.model('values', mongoose.Schema({
     pair: String,
     date: Date,
@@ -53,7 +53,9 @@ function getData(pair, callback) {
             value: data[i].last,
             data: data[i] * 1000
           });
-          callback(record);
+          if (callback) {
+            callback(record);
+          }
         }
       }
     } else {
