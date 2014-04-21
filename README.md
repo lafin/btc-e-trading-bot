@@ -1,9 +1,9 @@
-Trading bot BTC-E
-===================
-in developing...
+Example trading bot from btc-e.com
+-------
+The project is not complete. Continued within the [trading platform](https://github.com/RostovTeam/trading-platform).
 
 ###Run
-```bash
+```
 node app.js
 ```
 
