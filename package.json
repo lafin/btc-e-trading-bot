@@ -3,7 +3,7 @@
   "description": "btc-e-trader",
   "author": "Sergey Kuvakin",
   "dependencies": {
-    "mongoose": "~3.8.8"
+    "mongoose": "~4.2.4"
   },
   "engines": {
     "node": ">=0.10"
